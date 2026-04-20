@@ -1,0 +1,17 @@
+---
+# Codacy configuration.
+#
+# `scripts/` is the repo's Node-based manifest linter (run via `node
+# scripts/lint-plugins.mjs` in CI). Codacy's default JavaScript profile
+# assumes browser code and flags `node:*` imports, hashbangs, ES module
+# syntax, etc. — none of which apply here — so we skip JS analysis for that
+# directory.
+exclude_paths:
+  - "scripts/**"
+  - "node_modules/**"
+
+engines:
+  eslint:
+    exclude_paths:
+      - "scripts/**"
+      - "node_modules/**"

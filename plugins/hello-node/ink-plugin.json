@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "source",
+  "pluginKey": "node-hello-source",
+  "name": "Node Hello Source",
+  "version": "1.0.0",
+  "description": "Returns a configurable greeting for local plugin upload testing.",
+  "runtime": {
+    "type": "node"
+  },
+  "entrypoints": {
+    "validate": {
+      "command": ["node", "validate.mjs"]
+    },
+    "fetch": {
+      "command": ["node", "fetch.mjs"]
+    }
+  },
+  "workspaceConfigSchema": [
+    {
+      "key": "sourceName",
+      "label": "Source Name",
+      "type": "text",
+      "required": true,
+      "description": "Displayed in the generated print title.",
+      "defaultValue": "Node Hello Source"
+    },
+    {
+      "key": "apiToken",
+      "label": "API Token",
+      "type": "secret",
+      "required": false,
+      "description": "Optional token kept only in encrypted binding storage."
+    },
+    {
+      "key": "includeTriggeredAt",
+      "label": "Include Triggered Time",
+      "type": "checkbox",
+      "required": false,
+      "defaultValue": true
+    }
+  ],
+  "scheduleConfigSchema": [
+    {
+      "key": "message",
+      "label": "Message",
+      "type": "textarea",
+      "required": true,
+      "description": "Content printed by the plugin.",
+      "defaultValue": "Hello from the Node fixture plugin."
+    },
+    {
+      "key": "tone",
+      "label": "Tone",
+      "type": "select",
+      "required": true,
+      "defaultValue": "plain",
+      "options": [
+        { "label": "Plain", "value": "plain" },
+        { "label": "Verbose", "value": "verbose" }
+      ]
+    },
+    {
+      "key": "repeat",
+      "label": "Repeat Count",
+      "type": "number",
+      "required": false,
+      "defaultValue": 1
+    }
+  ]
+}

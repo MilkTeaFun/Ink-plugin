@@ -56,7 +56,8 @@ async function main() {
       const at = error.instancePath || "/";
       console.error(`  - ${at} ${error.message}`);
     }
-    failures += 1;
+    console.error("\n1 check(s) failed.");
+    process.exit(1);
   }
 
   if (manifest.runtime.type === "node") {

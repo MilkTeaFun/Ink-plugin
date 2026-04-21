@@ -1,11 +1,11 @@
 {
-  "name": "ink-plugin-repo",
+  "name": "ink-python-plugin-template",
   "private": true,
-  "version": "0.0.0",
-  "description": "Plugin collection and shared scaffolding for MilkTeaFun/Ink.",
+  "version": "0.1.0",
+  "description": "Single-plugin Python template for MilkTeaFun/Ink.",
   "type": "module",
   "scripts": {
-    "lint": "node scripts/lint-plugins.mjs"
+    "lint": "node scripts/lint-plugin.mjs"
   },
   "devDependencies": {
     "ajv": "8.17.1",

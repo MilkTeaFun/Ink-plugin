@@ -1,57 +1,131 @@
-# Ink-plugin
+# Ink Python Plugin Template
 
-This repository is the home for plugins that extend
-[MilkTeaFun/Ink](https://github.com/MilkTeaFun/Ink) — the open-source management
-workspace for Memobird thermal printers.
+This repository is a single Ink source plugin template.
 
-An Ink plugin is a small program that fetches data from an external source
-(RSS, Weibo, Twitter, a webhook bridge, …) and hands a normalized list of
-printable items back to the Ink runtime. Ink owns scheduling, deduplication,
-rate limiting, retry, and printing — plugins only do data collection.
+The recommended workflow is simple:
 
-## Repository layout
+1. fork this repository,
+2. edit the files in the repository root,
+3. push to your fork,
+4. install it in Ink from the Git repository URL.
 
+You do not need `repoSubdir` for the default path because the repository root is the plugin root.
+
+Ink itself lives at [MilkTeaFun/Ink](https://github.com/MilkTeaFun/Ink), and the current plugin contract is documented in [`docs/PLUGIN_SPEC.md`](https://github.com/MilkTeaFun/Ink/blob/main/docs/PLUGIN_SPEC.md).
+
+## Why this template defaults to Python
+
+Python is the better default for a fork-and-modify plugin template:
+
+- many data-source plugins are small HTTP, scraping, or transformation scripts
+- contributors can stay in one file while iterating on fetch logic
+- standard library support is enough for many integrations
+- people who are not primarily frontend or Node developers can still contribute quickly
+
+If your team prefers Node, Ink still supports it. You can switch `runtime.type` to `node`, replace the entrypoints, and add `package.json` plus `pnpm-lock.yaml`.
+
+## Files You Will Usually Edit
+
+- `ink-plugin.json`: plugin metadata, fetch cadence, settings fields, and entrypoints
+- `validate.py`: validates binding config saved in Ink Settings
+- `fetch.py`: collects items and returns them to Ink
+- `pyproject.toml`: Python dependencies
+- `uv.lock`: locked Python environment for reproducible installs
+
+## Hook Points
+
+This template is meant to be changed in three places:
+
+1. Rename the plugin in `ink-plugin.json`.
+2. Replace the validation rules in `validate.py`.
+3. Replace the sample fetch logic in `fetch.py` with your real upstream API or scraping logic.
+
+Ink v2 behavior to keep in mind:
+
+- `schemaVersion` must be `2`
+- fetch cadence is owned by `fetchPolicy`
+- print schedules do not pass plugin-defined schedule config
+- `fetch` receives `workspaceConfig`, `secrets`, `cursor`, and `trigger`
+
+## Quick Start
+
+1. Fork this repository.
+2. Update `ink-plugin.json`:
+   - `pluginKey`
+   - `name`
+   - `description`
+   - `fetchPolicy`
+   - `workspaceConfigSchema`
+3. Update `validate.py` to enforce your required config.
+4. Update `fetch.py` to collect real items from your source.
+5. If you need third-party Python packages, add them to `pyproject.toml` and refresh `uv.lock`.
+6. Run:
+
+```bash
+npm install
+npm run lint
 ```
-plugins/                 # one directory per plugin
-  hello-node/            # Node reference plugin
-  hello-python/          # Python reference plugin
-schemas/
-  ink-plugin.schema.json # JSON Schema for ink-plugin.json
-scripts/
-  lint-plugins.mjs       # offline manifest + layout lint
-ci/workflow-template/
-  lint.yml               # GitHub Actions workflow; copy to .github/workflows/lint.yml
+
+7. Push to your fork.
+8. In Ink admin settings, install from Git with:
+   - repository URL: `https://github.com/<your-user>/<your-repo>.git`
+   - ref: optional
+   - plugin subdirectory: leave empty
+
+## `validate.py` Contract
+
+Ink writes JSON to stdin in this shape:
+
+```json
+{
+  "workspaceConfig": {},
+  "secrets": {}
+}
 ```
 
-Each plugin is fully self-contained in its own directory. Nothing in `plugins/`
-is imported by another directory.
+Your script must print:
 
-## Writing a plugin
+```json
+{
+  "valid": true,
+  "errors": []
+}
+```
 
-The authoritative contract is in
-[`docs/PLUGIN_SPEC.md`](https://github.com/MilkTeaFun/Ink/blob/main/docs/PLUGIN_SPEC.md)
-on the main Ink repo. The short version:
+## `fetch.py` Contract
 
-1. Create a directory under `plugins/<your-plugin>/`.
-2. Add an `ink-plugin.json` manifest that matches
-   [`schemas/ink-plugin.schema.json`](schemas/ink-plugin.schema.json).
-3. Implement two entrypoints that read JSON from stdin and write JSON to stdout:
-   - `validate` — returns `{ valid, errors[] }` for a given config.
-   - `fetch` — returns `{ items[], cursor? }` on every trigger.
-4. Supply the runtime-specific dependency files:
-   - Node: `package.json` + `pnpm-lock.yaml`
-   - Python: `pyproject.toml` + `uv.lock`
-5. Run `npm run lint` locally before opening a PR.
+Ink writes JSON to stdin in this shape:
 
-Copy `plugins/hello-node/` or `plugins/hello-python/` as a starting point.
+```json
+{
+  "workspaceConfig": {},
+  "secrets": {},
+  "cursor": "opaque-cursor",
+  "trigger": {
+    "kind": "automatic",
+    "scheduledFor": "2026-04-20T12:00:00Z",
+    "triggeredAt": "2026-04-20T12:00:03Z",
+    "timezone": "UTC"
+  }
+}
+```
 
-## Editor support
+Your script must print:
 
-Point your editor at the schema to get completion and inline validation while
-editing `ink-plugin.json`. For example, in VS Code:
+```json
+{
+  "items": [],
+  "cursor": "next-cursor"
+}
+```
+
+`items` are deduplicated by Ink on `(plugin_binding_id, external_id)`, so `externalId` should be stable for the upstream item you fetched.
+
+## Editor Support
+
+Point your editor at the schema to get completion and validation for `ink-plugin.json`. Example for VS Code:
 
 ```jsonc
-// .vscode/settings.json
 {
   "json.schemas": [
     {
@@ -62,27 +136,9 @@ editing `ink-plugin.json`. For example, in VS Code:
 }
 ```
 
-## Linting locally
+## CI In Your Fork
 
-```bash
-npm install
-npm run lint
-```
-
-The lint script:
-
-- validates each `plugins/<name>/ink-plugin.json` against the JSON Schema,
-- rejects duplicate `pluginKey` values across the repo,
-- checks that the runtime-specific dependency files exist,
-- checks that the files referenced by each entrypoint exist.
-
-## Enabling CI
-
-A ready-made GitHub Actions workflow lives at
-[`ci/workflow-template/lint.yml`](ci/workflow-template/lint.yml). It runs
-`npm run lint` on every push and pull request.
-
-To activate it, copy the file into `.github/workflows/`:
+Copy the workflow template into `.github/workflows/`:
 
 ```bash
 mkdir -p .github/workflows
@@ -90,17 +146,6 @@ cp ci/workflow-template/lint.yml .github/workflows/lint.yml
 git add .github/workflows/lint.yml
 git commit -m "ci: enable plugin lint workflow"
 ```
-
-The template lives outside `.github/` so the file can be committed by OAuth
-integrations that were not granted the `workflow` scope; the one-time copy
-above only needs to be done once per fork.
-
-## Installing a plugin into Ink
-
-Ink currently supports installing plugins via ZIP upload (admin panel). Git
-URL installation is being added upstream — once shipped, forking this repo
-and pointing an Ink instance at your fork will be enough to install your
-plugins.
 
 ## License
 

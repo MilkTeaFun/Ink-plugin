@@ -61,10 +61,10 @@ Ink v2 behavior to keep in mind:
 5. If you need third-party Python packages, add them to `pyproject.toml` and refresh `uv.lock`.
 6. Run:
 
-```bash
-npm install
-npm run lint
-```
+   ```bash
+   npm install
+   npm run lint
+   ```
 
 7. Push to your fork.
 8. In Ink admin settings, install from Git with:

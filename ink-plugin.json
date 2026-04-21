@@ -1,12 +1,16 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "kind": "source",
-  "pluginKey": "python-hello-source",
-  "name": "Python Hello Source",
-  "version": "1.0.0",
-  "description": "Returns a configurable greeting for local plugin upload testing.",
+  "pluginKey": "python-template-source",
+  "name": "Ink Python Plugin Template",
+  "version": "0.1.0",
+  "description": "Fork this repository and customize it into your own Ink source plugin.",
   "runtime": {
     "type": "python"
+  },
+  "fetchPolicy": {
+    "type": "fixed_interval",
+    "minutes": 30
   },
   "entrypoints": {
     "validate": {
@@ -22,25 +26,23 @@
       "label": "Source Name",
       "type": "text",
       "required": true,
-      "description": "Displayed in the generated print title.",
-      "defaultValue": "Python Hello Source"
+      "description": "Shown in Ink as the source label and print title.",
+      "defaultValue": "My Plugin Source"
     },
     {
       "key": "apiToken",
       "label": "API Token",
       "type": "secret",
       "required": false,
-      "description": "Optional token kept only in encrypted binding storage."
-    }
-  ],
-  "scheduleConfigSchema": [
+      "description": "Optional secret used when calling your upstream API."
+    },
     {
       "key": "message",
-      "label": "Message",
+      "label": "Template Message",
       "type": "textarea",
       "required": true,
-      "description": "Content printed by the plugin.",
-      "defaultValue": "Hello from the Python fixture plugin."
+      "description": "Starter content so the template works before you replace fetch.py.",
+      "defaultValue": "Replace fetch.py with your real collection logic."
     },
     {
       "key": "uppercase",
